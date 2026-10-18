@@ -43,16 +43,16 @@ cd famguard
 Then:
 
 1. Open `http://127.0.0.1:3000` — the AdGuard Home first-run wizard (set an admin password).
-2. Create a free **Cloudflare Tunnel** (Zero Trust ▸ Networks ▸ Tunnels), add public hostnames:
+1. Create a free **Cloudflare Tunnel** (Zero Trust ▸ Networks ▸ Tunnels), add public hostnames:
    - `dns.yourdomain.com` → `HTTP` → `adguard:3000`  *(serves DoH **and** the portal)*
-3. Put the tunnel token in `.env` (`TUNNEL_TOKEN=...`) and fill in `DOH_URL` / `PRIVATE_DNS_HOST`.
-4. Go live:
+1. Put the tunnel token in `.env` (`TUNNEL_TOKEN=...`) and fill in `DOH_URL` / `PRIVATE_DNS_HOST`.
+1. Go live:
 
 ```bash
 docker compose --profile live up -d
 ```
 
-5. Send your family the link. That's the whole deployment.
+1. Send your family the link. That's the whole deployment.
 
 > **No ports are opened** — the tunnel is outbound-only from your server. Port 53, 80, 443 stay closed on your router.
 
@@ -67,7 +67,7 @@ Everything is configured in the AdGuard dashboard (`http://127.0.0.1:3000`):
 
 ## Repository Layout
 
-```
+```text
 portal/            Enrollment portal (stdlib-only server, offline QR, .mobileconfig generator)
 docker-compose.yml AdGuard + cloudflared (profile "live") + portal
 install.sh         Bootstrap helper
