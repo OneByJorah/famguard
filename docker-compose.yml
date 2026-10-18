@@ -1,0 +1,57 @@
+name: famguard
+
+services:
+  # The filter: AdGuard Home (UI on 3000, DNS on 53, DoH on 80 behind the tunnel)
+  adguard:
+    image: adguard/adguardhome:v0.107.57
+    container_name: famguard-adguard
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"    # admin UI (also serves DoH /dns-query over plain HTTP for the tunnel)
+      - "127.0.0.1:53:53/tcp"
+      - "127.0.0.1:53:53/udp"
+    volumes:
+      - adguard_work:/opt/adguardhome/work
+      - adguard_conf:/opt/adguardhome/conf
+    networks:
+      - internal
+
+  # The secure connector: Cloudflare Tunnel (no open ports, token in local .env)
+  cloudflared:
+    image: cloudflare/cloudflared:2025.10.0
+    container_name: famguard-tunnel
+    restart: unless-stopped
+    profiles: ["live"]
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:-}
+    depends_on:
+      - adguard
+      - portal
+    networks:
+      - internal
+
+  # The one-click enrollment portal
+  portal:
+    build: ./portal
+    image: ghcr.io/onebyjorah/famguard:latest
+    container_name: famguard-portal
+    restart: unless-stopped
+    environment:
+      - DOH_URL=${DOH_URL:-https://dns.example.com/dns-query}
+      - PRIVATE_DNS_HOST=${PRIVATE_DNS_HOST:-dns.example.com}
+      - PORTAL_PORT=8080
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - internal
+
+networks:
+  internal:
+    name: famguard_internal
+
+volumes:
+  adguard_work:
+    name: famguard_adguard_work
+  adguard_conf:
+    name: famguard_adguard_conf
